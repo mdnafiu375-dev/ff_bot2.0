@@ -1,1 +1,243 @@
-# ff_bot2.0
+# ff_bot2.0 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF Clowry Guild Bot Dashboard</title>
+    <style>
+        :root {
+            --primary: #ff4a00;
+            --dark-bg: #0f111a;
+            --card-bg: #1a1d29;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #2a2f42;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 1px solid #2a2f42;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #0f111a;
+            border: 1px solid #3b4252;
+            color: white;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #e04200;
+            box-shadow: 0 0 10px rgba(255, 74, 0, 0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #2a2f42;
+        }
+
+        th {
+            background-color: #12141d;
+            color: var(--primary);
+        }
+
+        .status-active {
+            color: #00ff66;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🔥 FF Guild Clowry Bot Panel 🔥</h1>
+        <p>Status: <span class="status-active">● BOT ACTIVE & RUNNING</span></p>
+    </header>
+
+    <div class="grid">
+        <!-- Input Panel -->
+        <div class="card">
+            <h2>Submit Guild Activity</h2>
+            <form id="guildForm">
+                <div class="form-group">
+                    <label for="playerName">Player Game Name</label>
+                    <input type="text" id="playerName" placeholder="e.g., OP_BOT_√" required>
+                </div>
+                <div class="form-group">
+                    <label for="playerUID">Player UID</label>
+                    <input type="number" id="playerUID" placeholder="e.g., 23666962" required>
+                </div>
+                <div class="form-group">
+                    <label for="gamesPlayed">Number of Games Given</label>
+                    <input type="number" id="gamesPlayed" min="1" placeholder="e.g., 5" required>
+                </div>
+                <button type="submit">Update Guild Bot</button>
+            </form>
+        </div>
+
+        <!-- Leaderboard / Tracker Panel -->
+        <div class="card">
+            <h2>Live Guild Standings</h2>
+            <div style="overflow-x: auto;">
+                <table id="leaderboard">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>UID</th>
+                            <th>Games</th>
+                            <th>Glory Est.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will load here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // System logic for storing data in local storage safely
+    const form = document.getElementById('guildForm');
+    const tbody = document.querySelector('#leaderboard tbody');
+
+    // Load initial data
+    function loadData() {
+        tbody.innerHTML = '';
+        let guildData = JSON.parse(localStorage.getItem('ff_guild_bot_data')) || [];
+        
+        // Sort players by highest games played
+        guildData.sort((a, b) => b.games - a.games);
+
+        guildData.forEach(player => {
+            let row = document.createElement('tr');
+            // Estimate glory based on average Free Fire glory score per game (approx 8-10 points)
+            let estimatedGlory = player.games * 8; 
+            
+            row.innerHTML = `
+                <td><strong>${player.name}</strong></td>
+                <td>${player.uid}</td>
+                <td>${player.games}</td>
+                <td style="color: #ffaa00;">+${estimatedGlory}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Handle user inputs
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('playerName').value;
+        const uid = document.getElementById('playerUID').value;
+        const games = parseInt(document.getElementById('gamesPlayed').value);
+
+        let guildData = JSON.parse(localStorage.getItem('ff_guild_bot_data')) || [];
+        
+        // Check if player UID already exists
+        let existingPlayer = guildData.find(p => p.uid === uid);
+
+        if (existingPlayer) {
+            existingPlayer.games += games; // add games to total
+        } else {
+            guildData.push({ name, uid, games });
+        }
+
+        localStorage.setItem('ff_guild_bot_data', JSON.stringify(guildData));
+        form.reset();
+        loadData();
+        alert("Success! Bot updated player activity.");
+    });
+
+    // Run on startup
+    window.onload = loadData;
+</script>
+
+</body>
+</html>
